@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "JavDB Sukebei Helper",
+  "version": "1.1.0",
+  "description": "Automatically fetch best Nyaa download link for JavDB pages",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "jdp@ckaznable.io",
+      "strict_min_version": "109.0"
+    }
+  },
+  "host_permissions": [
+    "https://sukebei.nyaa.si/*"
+  ],
+  "background": {
+    "service_worker": "src/background/background.ts",
+    "scripts": [
+      "src/background/background.ts"
+    ],
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://javdb.com/v/*"
+      ],
+      "js": [
+        "src/content/content.ts"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://javdb.com/users/collection_series*",
+        "https://javdb.com/users/collection_makers*",
+        "https://javdb.com/users/collection_codes*"
+      ],
+      "js": [
+        "src/content/collection.ts"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "storage"
+  ]
+}
