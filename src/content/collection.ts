@@ -27,18 +27,20 @@ const main = async () => {
     items.forEach((item) => {
         const titleEl = item.querySelector('strong');
         const countEl = item.querySelector('span'); // The one next to strong, containing (123)
+        const linkEl = (item.tagName === 'A' ? item : item.querySelector('a')) as HTMLAnchorElement | null;
 
-        if (!titleEl || !countEl) return;
+        if (!titleEl || !countEl || !linkEl) return;
 
         const title = titleEl.textContent?.trim() || '';
+        const url = linkEl.href;
         const countText = countEl.textContent?.trim() || '';
 
         // Parse count: "(5608)" -> 5608
         const match = countText.match(/\((\d+)\)/);
-        if (!title || !match) return;
+        if (!title || !match || !url) return;
 
         const currentCount = parseInt(match[1], 10);
-        const previousCount = storedData[title];
+        const previousCount = storedData[url];
 
         // 4. Compare and Highlight
         if (previousCount !== undefined) {
@@ -62,7 +64,7 @@ const main = async () => {
                 // Insert after the count span
                 countEl.insertAdjacentElement('afterend', badge);
 
-                console.log(`[Tracker] ${title}: ${previousCount} -> ${currentCount} (${diffText})`);
+                console.log(`[Tracker] ${title} (${url}): ${previousCount} -> ${currentCount} (${diffText})`);
 
                 // Add interaction handlers to clear highlight
                 const clearHighlight = async (e: Event) => {
@@ -75,13 +77,10 @@ const main = async () => {
                         badge.remove();
 
                         // Update stored data locally and save
-                        // We need to re-fetch to ensure we don't overwrite other parallel changes if possible,
-                        // but for simplicity we update our local cache and save.
-                        // Better: get latest storage, update this key, set again.
                         try {
                             const result = await chrome.storage.local.get([storageKey]);
                             const data = (result[storageKey] || {}) as StoredData;
-                            data[title] = currentCount;
+                            data[url] = currentCount;
                             await chrome.storage.local.set({ [storageKey]: data });
                             console.log(`[Tracker] Cleared highlight for ${title}. Updated count to ${currentCount}.`);
                         } catch (err) {
@@ -94,15 +93,12 @@ const main = async () => {
                 item.addEventListener('click', clearHighlight);
                 item.addEventListener('auxclick', clearHighlight);
 
-                // DO NOT update newData[title] here automatically.
-                // We want the old count to persist until clicked.
                 return;
             }
         } else {
             // New item found (first time seeing it)
-            // Save it immediately so next time we have a baseline
-            if (newData[title] !== currentCount) {
-                newData[title] = currentCount;
+            if (newData[url] !== currentCount) {
+                newData[url] = currentCount;
                 hasChanges = true;
             }
         }
