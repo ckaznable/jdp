@@ -10,6 +10,14 @@ interface NyaaResult {
     isRemake: boolean; // Red
 }
 
+const postToLocalCache = (num: string): void => {
+    const html = document.documentElement.outerHTML;
+    chrome.runtime.sendMessage({ type: 'POST_CACHE', num, html })
+        .catch(err => {
+            console.warn('JavDB Sukebei Helper: Failed to post cache', err);
+        });
+};
+
 const main = async () => {
     // 1. Extract ID
     const id = extractId();
@@ -18,6 +26,9 @@ const main = async () => {
         return;
     }
     console.log(`JavDB Sukebei Helper: Found ID ${id}`);
+
+    // 2. Post page HTML to local cache server (fire-and-forget)
+    postToLocalCache(id);
 
     // 2. Fetch from Sukebei Nyaa
     try {
