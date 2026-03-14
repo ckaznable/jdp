@@ -18,7 +18,7 @@ const main = async () => {
 
     // 2. Load stored data
     const storageKey = 'collection_tracker_data';
-    const storedResult = await chrome.storage.local.get([storageKey]);
+    const storedResult = await chrome.storage.sync.get([storageKey]);
     const storedData = (storedResult[storageKey] || {}) as StoredData;
     const newData: StoredData = { ...storedData };
     let hasChanges = false;
@@ -78,10 +78,10 @@ const main = async () => {
 
                         // Update stored data locally and save
                         try {
-                            const result = await chrome.storage.local.get([storageKey]);
+                            const result = await chrome.storage.sync.get([storageKey]);
                             const data = (result[storageKey] || {}) as StoredData;
                             data[url] = currentCount;
-                            await chrome.storage.local.set({ [storageKey]: data });
+                            await chrome.storage.sync.set({ [storageKey]: data });
                             console.log(`[Tracker] Cleared highlight for ${title}. Updated count to ${currentCount}.`);
                         } catch (err) {
                             console.error('[Tracker] Failed to update count on click', err);
@@ -107,7 +107,7 @@ const main = async () => {
     // 5. Save initial data (only for new items or first run)
     if (hasChanges) {
         try {
-            await chrome.storage.local.set({ [storageKey]: newData });
+            await chrome.storage.sync.set({ [storageKey]: newData });
             console.log(`JavDB Collection Tracker: Initial data updated for new items.`);
         } catch (err) {
             console.error('JavDB Collection Tracker: Failed to save data', err);
